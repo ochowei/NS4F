@@ -1,8 +1,9 @@
-name: Build and Test
+name: Build, Test and Release
 
 on:
   push:
     branches: [ "main" ]
+    tags: [ 'v*.*.*' ] # Run on version tags
   pull_request:
     branches: [ "main" ]
 
@@ -41,3 +42,48 @@ jobs:
 
       - name: Run Playwright tests
         run: npm test
+
+      - name: Upload Chrome build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: chrome-build
+          path: dist/chrome/
+
+      - name: Upload Firefox build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: firefox-build
+          path: dist/firefox/
+
+  release:
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create a release
+
+    steps:
+      - name: Download Chrome build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: chrome-build
+          path: dist/chrome
+
+      - name: Download Firefox build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: firefox-build
+          path: dist/firefox
+
+      - name: Zip the builds
+        run: |
+          cd dist/chrome && zip -r ../../chrome-extension.zip .
+          cd ../../
+          cd dist/firefox && zip -r ../../firefox-extension.zip .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            chrome-extension.zip
+            firefox-extension.zip
