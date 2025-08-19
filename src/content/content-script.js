@@ -72,6 +72,7 @@ function handleDomChanges(mutationsList, observer) {
   // We can simply run our check function whenever the DOM changes.
   // For better performance on very active pages, this could be debounced.
   findAndInjectButton();
+
 }
 
 // Create an observer instance linked to the callback function
