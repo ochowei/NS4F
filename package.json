@@ -1,0 +1,27 @@
+{
+  "name": "notion-share-for-facebook",
+  "version": "0.1.0",
+  "description": "一個瀏覽器擴充功能，讓你一鍵將 Facebook 貼文分享至 Notion。",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "build:chrome": "webpack --config webpack.config.js --env browser=chrome",
+    "build:firefox": "webpack --config webpack.config.js --env browser=firefox"
+  },
+  "keywords": [
+    "notion",
+    "facebook",
+    "chrome-extension",
+    "firefox-addon",
+    "web-extension"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@playwright/test": "^1.40.1",
+    "copy-webpack-plugin": "^12.0.2",
+    "rimraf": "^5.0.5",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  }
+}
