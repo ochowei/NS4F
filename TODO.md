@@ -15,8 +15,8 @@
     *   [x] **功能邏輯**：在 `src/options/options.js` 中，實作儲存與讀取設定的功能，將使用者的輸入存進瀏覽器的儲存空間 (`chrome.storage`)。
 
 *   **2. 內容腳本 (Content Script)**
-    *   [ ] **注入按鈕**：在 `src/content/content-script.js` 中，實作偵測 Facebook 分享選單並注入「分享至 Notion」按鈕的邏輯。
-    *   [ ] **穩定性**：使用 `MutationObserver` 來應對 Facebook 動態載入的介面，確保能穩定地找到分享選單。
+    *   [x] **注入按鈕**：在 `src/content/content-script.js` 中，實作偵測 Facebook 分享選單並注入「分享至 Notion」按鈕的邏輯。
+    *   [x] **穩定性**：使用 `MutationObserver` 來應對 Facebook 動態載入的介面，確保能穩定地找到分享選單。
     *   [ ] **資料擷取**：為按鈕新增點擊事件，觸發時擷取當前頁面的標題、連結，以及使用者選取的文字。
     *   [ ] **訊息傳遞**：將擷取到的資料傳送給背景服務工作線程（Service Worker）。
 
