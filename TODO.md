@@ -11,8 +11,8 @@
 ## ⬜ **未完成 (To-Do)**
 
 *   **1. 選項頁面 (Options Page)**
-    *   [ ] **HTML 介面**：在 `src/options/options.html` 中，建立表單讓使用者輸入 Notion API Token 和 Database ID。
-    *   [ ] **功能邏輯**：在 `src/options/options.js` 中，實作儲存與讀取設定的功能，將使用者的輸入存進瀏覽器的儲存空間 (`chrome.storage`)。
+    *   [x] **HTML 介面**：在 `src/options/options.html` 中，建立表單讓使用者輸入 Notion API Token 和 Database ID。
+    *   [x] **功能邏輯**：在 `src/options/options.js` 中，實作儲存與讀取設定的功能，將使用者的輸入存進瀏覽器的儲存空間 (`chrome.storage`)。
 
 *   **2. 內容腳本 (Content Script)**
     *   [ ] **注入按鈕**：在 `src/content/content-script.js` 中，實作偵測 Facebook 分享選單並注入「分享至 Notion」按鈕的邏輯。
