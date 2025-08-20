@@ -120,8 +120,34 @@ function findAndInjectButton() {
         // createShareButton can still use menuList to find any descendant item to clone.
         const button = createShareButton(menuList);
         if (button) {
-            injectionParent.prepend(button);
-            console.log('NS4F: Button injected successfully.');
+            // New logic to insert the button at the correct position.
+            const menuItems = injectionParent.querySelectorAll('div[role="listitem"]');
+            let messengerButton = null;
+            let whatsappButton = null;
+
+            for (const item of menuItems) {
+                const text = item.textContent || "";
+                if (text.includes('Messenger') || text.includes('使用 Messenger 傳送')) {
+                    messengerButton = item;
+                }
+                if (text.includes('WhatsApp') || text.includes('傳送到 WhatsApp')) {
+                    whatsappButton = item;
+                }
+            }
+
+            if (messengerButton) {
+                // Insert after the Messenger button.
+                messengerButton.parentNode.insertBefore(button, messengerButton.nextSibling);
+                console.log('NS4F: Button injected successfully after Messenger.');
+            } else if (whatsappButton) {
+                // Fallback: Insert before the WhatsApp button if Messenger isn't found.
+                injectionParent.insertBefore(button, whatsappButton);
+                console.log('NS4F: Messenger button not found. Injecting before WhatsApp.');
+            } else {
+                // Fallback: append to the end of the list if neither is found.
+                injectionParent.appendChild(button);
+                console.log('NS4F: Neither Messenger nor WhatsApp button found. Appending to end of list.');
+            }
         } else {
             console.log('NS4F: Failed to create button.');
         }
