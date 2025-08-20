@@ -84,21 +84,28 @@ function findAndInjectButton() {
 
         console.log('NS4F DEBUG: Found menu list inside the dialog.', menuList);
 
-        if (menuList.querySelector(`#${BUTTON_ID}`)) {
+        // The actual container for the items is the parent of the first list item.
+        const injectionParent = menuList.querySelector('div[role="listitem"]')?.parentElement;
+        if (!injectionParent) {
+            console.log(`NS4F DEBUG: Could not find the injection parent for the share button.`);
+            return;
+        }
+
+        if (injectionParent.querySelector(`#${BUTTON_ID}`)) {
             console.log('NS4F DEBUG: Button already injected. Skipping.');
             return;
         }
 
         console.log('NS4F: Attempting to create and inject button.');
+        // createShareButton can still use menuList to find any descendant item to clone.
         const button = createShareButton(menuList);
         if (button) {
-            menuList.prepend(button);
+            injectionParent.prepend(button);
             console.log('NS4F: Button injected successfully.');
         } else {
             console.log('NS4F: Failed to create button.');
         }
     });
-
 }
 
 function handleDomChanges(mutationsList, observer) {
