@@ -87,3 +87,44 @@ jobs:
           files: |
             chrome-extension.zip
             firefox-extension.zip
+
+  prerelease:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create a release
+
+    steps:
+      - name: Download Chrome build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: chrome-build
+          path: dist/chrome
+
+      - name: Download Firefox build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firefox-build
+          path: dist/firefox
+
+      - name: Zip the builds
+        run: |
+          cd dist/chrome && zip -r ../../chrome-extension.zip .
+          cd ../../
+          cd dist/firefox && zip -r ../../firefox-extension.zip .
+
+      - name: Generate timestamp tag
+        id: timestamp
+        run: echo "TAG_NAME=nightly-$(date -u +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
+
+      - name: Create GitHub Pre-Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: "Nightly Build ${{ env.TAG_NAME }}"
+          body: "Automated nightly build. This is a pre-release version."
+          prerelease: true
+          files: |
+            chrome-extension.zip
+            firefox-extension.zip
