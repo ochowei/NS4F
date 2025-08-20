@@ -16,7 +16,6 @@ function createShareButton(menuList) {
         return null;
     }
     console.log('NS4F DEBUG: Found menu item to clone:', originalMenuItem);
-
     const button = originalMenuItem.cloneNode(true);
     button.id = BUTTON_ID;
 
@@ -36,7 +35,6 @@ function createShareButton(menuList) {
     cleanButton.setAttribute('role', button.getAttribute('role'));
     cleanButton.setAttribute('class', button.getAttribute('class'));
     cleanButton.setAttribute('style', button.getAttribute('style'));
-
     cleanButton.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -44,6 +42,7 @@ function createShareButton(menuList) {
     });
 
     console.log('NS4F DEBUG: Clean button created.', cleanButton);
+
     return cleanButton;
 }
 
@@ -99,6 +98,7 @@ function findAndInjectButton() {
             console.log('NS4F: Failed to create button.');
         }
     });
+
 }
 
 function handleDomChanges(mutationsList, observer) {
