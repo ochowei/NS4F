@@ -29,6 +29,26 @@ function createShareButton(menuList) {
         button.textContent = BUTTON_TEXT;
     }
 
+    // --- Icon Replacement Logic ---
+    const iconElement = button.querySelector('i, img, svg');
+    if (iconElement) {
+        console.log('NS4F DEBUG: Found icon element to replace:', iconElement);
+        const notionIcon = document.createElement('img');
+        notionIcon.src = chrome.runtime.getURL('icons/notion-icon.svg');
+
+        // Attempt to match the original icon's dimensions and styling
+        notionIcon.style.width = '20px';
+        notionIcon.style.height = '20px';
+        notionIcon.style.marginRight = '12px'; // Adjust as needed
+        notionIcon.style.verticalAlign = 'middle';
+
+        iconElement.parentNode.replaceChild(notionIcon, iconElement);
+        console.log('NS4F DEBUG: Replaced original icon with Notion icon.');
+    } else {
+        console.log('NS4F DEBUG: Could not find an icon element (i, img, svg) to replace.');
+    }
+    // --- End Icon Replacement ---
+
     const cleanButton = document.createElement('div');
     cleanButton.innerHTML = button.innerHTML;
     cleanButton.id = button.id;
