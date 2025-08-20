@@ -6,7 +6,8 @@
   "permissions": [
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "windows"
   ],
   "host_permissions": [
     "*://*.facebook.com/*"
@@ -30,8 +31,7 @@
     "open_in_tab": true
   },
   "action": {
-    "default_title": "Notion Share for Facebook - 設定",
-    "default_popup": "src/options/options.html"
+    "default_title": "Notion Share for Facebook - 設定"
   },
   "icons": {
     "16": "src/icons/icon16.png",
@@ -41,7 +41,10 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "icons/*"
+        "icons/*",
+        "src/popup/popup.html",
+        "src/popup/popup.css",
+        "src/popup/popup.js"
       ],
       "matches": [
         "*://*.facebook.com/*"
