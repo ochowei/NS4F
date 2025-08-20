@@ -7,66 +7,98 @@ const BUTTON_TEXT = '分享至 Notion';
 const SHARE_DIALOG_SELECTOR = 'div[role="dialog"]';
 const SHARE_MENU_LIST_SELECTOR = 'div[role="menu"]';
 
-function createShareButton() {
+function createShareButton(menuList) {
+    console.log('NS4F DEBUG: Entered createShareButton.');
     // To ensure our button matches Facebook's styles, we'll clone an existing menu item.
-    const originalMenuItem = document.querySelector(`${SHARE_MENU_LIST_SELECTOR} div[role="menuitem"]`);
+    const originalMenuItem = menuList.querySelector('div[role="menuitem"]');
     if (!originalMenuItem) {
-        console.log("NS4F: Could not find a menu item to clone.");
+        console.log("NS4F DEBUG: Could not find a menu item `div[role=\"menuitem\"]` to clone inside the menu list.");
         return null;
     }
-
+    console.log('NS4F DEBUG: Found menu item to clone:', originalMenuItem);
     const button = originalMenuItem.cloneNode(true);
     button.id = BUTTON_ID;
 
     // Find the element containing the text and update it.
-    // This selector is a guess and may need refinement based on Facebook's DOM structure.
     const textElement = button.querySelector('span[dir="auto"]');
     if (textElement) {
+        console.log('NS4F DEBUG: Found text element `span[dir="auto"]` to update.');
         textElement.textContent = BUTTON_TEXT;
     } else {
-        // Fallback if the specific span isn't found.
+        console.log('NS4F DEBUG: Could not find text element `span[dir="auto"]`, setting textContent of the whole button.');
         button.textContent = BUTTON_TEXT;
     }
 
-    // To prevent any of Facebook's original event listeners from firing,
-    // we re-create the element from its outerHTML.
     const cleanButton = document.createElement('div');
     cleanButton.innerHTML = button.innerHTML;
     cleanButton.id = button.id;
     cleanButton.setAttribute('role', button.getAttribute('role'));
     cleanButton.setAttribute('class', button.getAttribute('class'));
     cleanButton.setAttribute('style', button.getAttribute('style'));
-
-
     cleanButton.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
         console.log('NS4F: "Share to Notion" button clicked!');
-        // Future logic for data extraction and sending to background script will go here.
     });
+
+    console.log('NS4F DEBUG: Clean button created.', cleanButton);
 
     return cleanButton;
 }
 
 function findAndInjectButton() {
-    const dialog = document.querySelector(SHARE_DIALOG_SELECTOR);
-    if (!dialog) return; // No dialog found.
+    console.log(`NS4F DEBUG: Running findAndInjectButton. Searching for '${SHARE_DIALOG_SELECTOR}'.`);
+    const dialogs = document.querySelectorAll(SHARE_DIALOG_SELECTOR);
 
-    // Heuristic: Check for a heading with "分享" (Share) to ensure it's the right dialog.
-    const isShareDialog = Array.from(dialog.querySelectorAll('h2, h3, [role="heading"]')).some(h => h.textContent.includes('分享'));
-    if (!isShareDialog) return;
+    if (dialogs.length === 0) {
+        return;
+    }
 
-    const menuList = dialog.querySelector(SHARE_MENU_LIST_SELECTOR);
-    // Proceed only if the menu exists and our button hasn't been injected yet.
-    if (menuList && !menuList.querySelector(`#${BUTTON_ID}`)) {
-        console.log('NS4F: Share dialog found, attempting to inject button.');
-        const button = createShareButton();
+    console.log(`NS4F DEBUG: Found ${dialogs.length} dialog(s).`);
+
+    dialogs.forEach((dialog, index) => {
+        console.log(`NS4F DEBUG: Checking dialog #${index + 1}.`);
+        const headings = dialog.querySelectorAll('h2, h3, [role="heading"]');
+        if (headings.length === 0) {
+            console.log(`NS4F DEBUG: Dialog #${index + 1} has no heading elements.`);
+            return;
+        }
+
+        const hasShareHeading = Array.from(headings).some(h => {
+            console.log(`NS4F DEBUG: Dialog #${index + 1}, found heading with text: "${h.textContent}"`);
+            return h.textContent.includes('分享');
+        });
+
+        if (!hasShareHeading) {
+            console.log(`NS4F DEBUG: Dialog #${index + 1} does not seem to be a share dialog.`);
+            return;
+        }
+
+        console.log(`NS4F DEBUG: Found a potential share dialog! (Dialog #${index + 1})`);
+
+        const menuList = dialog.querySelector(SHARE_MENU_LIST_SELECTOR);
+        if (!menuList) {
+            console.log(`NS4F DEBUG: Share dialog found, but it does not contain a menu list with selector '${SHARE_MENU_LIST_SELECTOR}'.`);
+            return;
+        }
+
+        console.log('NS4F DEBUG: Found menu list inside the dialog.', menuList);
+
+        if (menuList.querySelector(`#${BUTTON_ID}`)) {
+            console.log('NS4F DEBUG: Button already injected. Skipping.');
+            return;
+        }
+
+        console.log('NS4F: Attempting to create and inject button.');
+        const button = createShareButton(menuList);
         if (button) {
-            // Prepend the button to the top of the menu.
             menuList.prepend(button);
             console.log('NS4F: Button injected successfully.');
+        } else {
+            console.log('NS4F: Failed to create button.');
         }
-    }
+    });
+
 }
 
 function handleDomChanges(mutationsList, observer) {
