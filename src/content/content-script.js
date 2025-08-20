@@ -5,14 +5,14 @@ const BUTTON_ID = 'ns4f-share-button';
 const BUTTON_TEXT = '分享至 Notion';
 // Using ARIA roles is more robust than class names for identifying UI components.
 const SHARE_DIALOG_SELECTOR = 'div[role="dialog"]';
-const SHARE_MENU_LIST_SELECTOR = 'div[role="menu"]';
+const SHARE_MENU_LIST_SELECTOR = 'div[role="list"]';
 
 function createShareButton(menuList) {
     console.log('NS4F DEBUG: Entered createShareButton.');
     // To ensure our button matches Facebook's styles, we'll clone an existing menu item.
-    const originalMenuItem = menuList.querySelector('div[role="menuitem"]');
+    const originalMenuItem = menuList.querySelector('div[role="listitem"]');
     if (!originalMenuItem) {
-        console.log("NS4F DEBUG: Could not find a menu item `div[role=\"menuitem\"]` to clone inside the menu list.");
+        console.log("NS4F DEBUG: Could not find a menu item `div[role=\"listitem\"]` to clone inside the menu list.");
         return null;
     }
     console.log('NS4F DEBUG: Found menu item to clone:', originalMenuItem);
