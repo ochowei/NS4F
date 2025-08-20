@@ -1,3 +1,4 @@
+console.log("NS4F: Options script executing.");
 // JavaScript for the options page.
 
 // Saves options to chrome.storage.
