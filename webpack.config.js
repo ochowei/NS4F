@@ -54,6 +54,7 @@ module.exports = (env) => {
           },
           { from: 'src/options/options.html', to: 'options/options.html' },
           { from: 'src/icons', to: 'icons' },
+          { from: 'src/popup', to: 'popup' },
         ],
       }),
     ],

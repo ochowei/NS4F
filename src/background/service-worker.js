@@ -1,6 +1,31 @@
 console.log("NS4F: Service Worker script executing.");
 
-// Background service worker for the extension (Manifest V3)
-// This is currently a placeholder.
-// Future logic will handle messages from the content script and interact with the Notion API.
-console.log("Service Worker loaded.");
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "ns4f_share") {
+        console.log("NS4F: Received share action with data:", request.data);
+
+        const { content, url } = request.data;
+
+        // Encode the parameters to safely pass them in the URL
+        const encodedContent = encodeURIComponent(content);
+        const encodedUrl = encodeURIComponent(url);
+
+        const popupUrl = chrome.runtime.getURL('src/popup/popup.html');
+
+        // Create a new window for our popup
+        chrome.windows.create({
+            url: `${popupUrl}?content=${encodedContent}&url=${encodedUrl}`,
+            type: 'popup',
+            width: 400,
+            height: 300
+        }, (window) => {
+            console.log("NS4F: Popup window created.", window);
+        });
+
+        // Respond to the content script
+        sendResponse({ status: "success", message: "Popup opened" });
+        return true; // Indicates that the response is sent asynchronously
+    }
+});
+
+console.log("NS4F: Service Worker loaded and message listener attached.");

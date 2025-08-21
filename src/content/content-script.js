@@ -59,6 +59,20 @@ function createShareButton(menuList) {
         event.preventDefault();
         event.stopPropagation();
         console.log('NS4F: "Share to Notion" button clicked!');
+
+        // --- Data Extraction and Messaging ---
+        const postDetails = getPostDetails(event.target);
+        chrome.runtime.sendMessage({
+            action: "ns4f_share",
+            data: postDetails
+        }, (response) => {
+            if (chrome.runtime.lastError) {
+                console.error("NS4F: Message sending failed:", chrome.runtime.lastError);
+            } else {
+                console.log("NS4F: Message sent successfully, response:", response);
+            }
+        });
+        // --- End Data Extraction and Messaging ---
     });
 
     console.log('NS4F DEBUG: Clean button created.', cleanButton);
@@ -176,3 +190,39 @@ const config = {
 observer.observe(document.body, config);
 
 console.log("MutationObserver is now watching the DOM.");
+
+function getPostDetails(buttonElement) {
+    // This is a best-effort attempt to find the post content and URL.
+    // Facebook's DOM is complex and subject to change.
+
+    // Let's find the root of the post. We can traverse up until we find a container
+    // that seems to hold the entire post. A common pattern is an element with
+    // a specific data attribute or a complex class name.
+    // For this example, we'll look for a div that is inside the dialog.
+    const dialog = buttonElement.closest('div[role="dialog"]');
+    if (!dialog) {
+        return { content: '無法找到貼文內容。', url: window.location.href };
+    }
+
+    // Now, let's try to find the content within the dialog.
+    // Usually, the shared content is displayed prominently.
+    let content = '無法自動擷取內容。';
+    // Let's try a selector that often contains the main text of a post.
+    const contentElement = dialog.querySelector('div[data-ad-preview="message"]');
+    if (contentElement) {
+        content = contentElement.innerText;
+    }
+
+    // For the URL, we can try to find a link to the post.
+    // These links are often timestamp links.
+    let postUrl = window.location.href;
+    const timeLink = dialog.querySelector('a[href*="/posts/"], a[href*="/videos/"], a[href*="/photos/"]');
+    if (timeLink && timeLink.href) {
+        postUrl = timeLink.href;
+    }
+
+    return {
+        content: content.trim(),
+        url: postUrl
+    };
+}
