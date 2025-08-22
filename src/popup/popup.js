@@ -22,4 +22,19 @@ document.addEventListener('DOMContentLoaded', () => {
         urlElement.textContent = '沒有提供網址。';
         urlElement.removeAttribute('href');
     }
+
+    const pasteButton = document.getElementById('paste-button');
+    pasteButton.addEventListener('click', async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            contentElement.value = text;
+            console.log('NS4F: Pasted from clipboard.');
+        } catch (err) {
+            console.error('NS4F: Failed to read clipboard contents: ', err);
+            // Fallback for browsers/situations where readText is not supported.
+            // This will paste the text, but might not be ideal UX.
+            contentElement.focus();
+            document.execCommand('paste');
+        }
+    });
 });
