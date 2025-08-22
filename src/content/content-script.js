@@ -194,32 +194,54 @@ console.log("MutationObserver is now watching the DOM.");
 function getPostDetails(buttonElement) {
     // This is a best-effort attempt to find the post content and URL.
     // Facebook's DOM is complex and subject to change.
-
-    // Let's find the root of the post. We can traverse up until we find a container
-    // that seems to hold the entire post. A common pattern is an element with
-    // a specific data attribute or a complex class name.
-    // For this example, we'll look for a div that is inside the dialog.
     const dialog = buttonElement.closest('div[role="dialog"]');
     if (!dialog) {
-        return { content: '無法找到貼文內容。', url: window.location.href };
+        console.error("NS4F: Could not find parent dialog for the share button.");
+        return { content: '無法找到貼文對話框。', url: window.location.href };
     }
 
-    // Now, let's try to find the content within the dialog.
-    // Usually, the shared content is displayed prominently.
+    // --- New URL Extraction Logic (from WhatsApp link) ---
+    let postUrl = '';
+    // Find the WhatsApp link by checking the href for "wa.me".
+    const whatsAppAnchor = Array.from(dialog.querySelectorAll('a')).find(a => a.href.includes('wa.me'));
+
+    if (whatsAppAnchor && whatsAppAnchor.href) {
+        try {
+            // Use URLSearchParams to safely parse the query string.
+            const urlParams = new URLSearchParams(new URL(whatsAppAnchor.href).search);
+            const textParam = urlParams.get('text');
+            if (textParam) {
+                // The 'text' parameter contains the URL we want to share.
+                postUrl = textParam;
+                console.log(`NS4F: Extracted URL from WhatsApp link: ${postUrl}`);
+            }
+        } catch (e) {
+            console.error("NS4F: Error parsing WhatsApp link:", e);
+        }
+    }
+
+    if (!postUrl) {
+        console.log("NS4F: Could not find or parse WhatsApp link, falling back to previous method.");
+        // Fallback to the old method if the new one fails.
+        const timeLink = dialog.querySelector('a[href*="/posts/"], a[href*="/videos/"], a[href*="/photos/"]');
+        if (timeLink && timeLink.href) {
+            postUrl = timeLink.href;
+        } else {
+            // Final fallback to the page's URL.
+            postUrl = window.location.href;
+        }
+    }
+    // --- End URL Extraction Logic ---
+
+
+    // --- Content Extraction Logic (remains best-effort) ---
+    // NOTE: This selector might be fragile due to Facebook's changing class names.
     let content = '無法自動擷取內容。';
-    // Let's try a selector that often contains the main text of a post.
     const contentElement = dialog.querySelector('div[data-ad-preview="message"]');
     if (contentElement) {
         content = contentElement.innerText;
     }
-
-    // For the URL, we can try to find a link to the post.
-    // These links are often timestamp links.
-    let postUrl = window.location.href;
-    const timeLink = dialog.querySelector('a[href*="/posts/"], a[href*="/videos/"], a[href*="/photos/"]');
-    if (timeLink && timeLink.href) {
-        postUrl = timeLink.href;
-    }
+    // --- End Content Extraction Logic ---
 
     return {
         content: content.trim(),
