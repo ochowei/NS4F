@@ -1,7 +1,7 @@
 # Notion Share for Facebook (NS4F)
 
 在 Facebook 網頁上，當你點選「分享」按鈕時，這個跨瀏覽器插件會在「分享至 …」清單中新增 **「分享至 Notion」**。  
-一鍵把當前貼文/頁面資訊（連結、標題、選取文字、備註）存進你指定的 Notion Database。
+一鍵把當前貼文/頁面資訊（連結、標題、選取文字、備註）存進你指定的 Notion - Database。
 
 > 支援：Chrome、Firefox、Edge（WebExtensions API / Manifest V3，Firefox 需 109+ 並啟用 MV3 支援）
 
