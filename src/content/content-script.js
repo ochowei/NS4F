@@ -188,7 +188,6 @@ function findAndHijackCopyLinkButton() {
                 // The actual clickable element might be the item itself or a child.
                 // Let's add the listener to the list item for broader compatibility.
                 item.addEventListener('click', (event) => {
-                    event.preventDefault();
                     console.log('NS4F: Hijacked "Copy link" button clicked!');
 
                     // --- Data Extraction and Messaging ---
