@@ -1,5 +1,22 @@
 # AGENTS.md - Notion Share for Facebook (NS4F)
 
+### PDCA 操作
+主要資料夾: .pdca-cycle
+版本: 1.0.0
+操作指引
+
+    P: 寫 plan.md 與 journal-cycle
+    D: 在 dev-log 裡面寫日誌 與 journal-cycle
+    C: 也是在 dev-log 裡面寫日誌 與 journal-cycle
+    A: 寫 journal-cycle
+
+起步
+
+    如果是從 0 開始的 project，從 P -> D -> C -> ... -> D -> C -> A
+    如果要更動 plan 的話，要進行 A，再更動
+    如果是已經有內容的 project，從 C 開始，然後 A，會決定繼續 D 還是 P，然後進行 Cycle。
+
+
 ## 專案目標
 
 此專案的目標是建立一個跨瀏覽器的擴充功能，讓使用者能將 Facebook 上的貼文一鍵分享至指定的 Notion Database。
@@ -68,3 +85,5 @@ ns4f/
   - 你必須在 `e2e/` 目錄下撰寫 Playwright 腳本來驗證你的變更。
   - 你必須在提交前呼叫 `frontend_verification_instructions` 來執行驗證。
   - **注意**: 請勿編寫需要使用者登入才能運作的 E2E 測試，因為我們的測試環境無法處理登入流程。
+
+
