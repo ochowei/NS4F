@@ -90,10 +90,10 @@ jobs:
 
   prerelease:
     needs: build-and-test
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Required to create a release
+      contents: write # Required for creating and deleting releases
 
     steps:
       - name: Download Chrome build artifact
@@ -114,16 +114,26 @@ jobs:
           cd ../../
           cd dist/firefox && zip -r ../../firefox-extension.zip .
 
-      - name: Generate timestamp tag
-        id: timestamp
-        run: echo "TAG_NAME=nightly-$(date -u +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
+      - name: Set PR-specific tag
+        id: pr_tag
+        run: echo "TAG_NAME=pr-nightly-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
 
-      - name: Create GitHub Pre-Release
+      - name: Delete existing pre-release and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete ${{ env.TAG_NAME }} --yes 2>/dev/null || echo "No previous release found for ${{ env.TAG_NAME }}."
+          git push origin --delete ${{ env.TAG_NAME }} 2>/dev/null || echo "No previous tag found for ${{ env.TAG_NAME }}."
+
+      - name: Create GitHub Pre-Release for PR
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG_NAME }}
-          name: "Nightly Build ${{ env.TAG_NAME }}"
-          body: "Automated nightly build. This is a pre-release version."
+          name: "Nightly Build for PR #${{ github.event.pull_request.number }}"
+          body: |
+            Automated build for PR #${{ github.event.pull_request.number }}.
+            This is a pre-release version for manual testing.
+            Commit: `${{ github.sha }}`
           prerelease: true
           files: |
             chrome-extension.zip
