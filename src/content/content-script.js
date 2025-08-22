@@ -1,67 +1,51 @@
 console.log("NS4F: Content Script executing.");
 console.log("NS4F Content Script loaded.");
 
-const BUTTON_ID = 'ns4f-share-button';
+const BUTTON_ID_PREFIX = 'ns4f-post-share-button-';
 const BUTTON_TEXT = '分享至 Notion';
-// Using ARIA roles is more robust than class names for identifying UI components.
-const SHARE_DIALOG_SELECTOR = 'div[role="dialog"]';
-const SHARE_MENU_LIST_SELECTOR = 'div[role="list"]';
+const POST_SELECTOR = 'div[role="article"]';
+const PROCESSED_MARKER = 'data-ns4f-processed';
+const NOTION_ICON_URL = chrome.runtime.getURL('icons/notion-icon.svg');
 
-function createShareButton(menuList) {
-    console.log('NS4F DEBUG: Entered createShareButton.');
-    // To ensure our button matches Facebook's styles, we'll clone an existing menu item.
-    const originalMenuItem = menuList.querySelector('div[role="listitem"]');
-    if (!originalMenuItem) {
-        console.log("NS4F DEBUG: Could not find a menu item `div[role=\"listitem\"]` to clone inside the menu list.");
-        return null;
-    }
-    console.log('NS4F DEBUG: Found menu item to clone:', originalMenuItem);
-    const button = originalMenuItem.cloneNode(true);
-    button.id = BUTTON_ID;
+/**
+ * Creates the "Share to Notion" button by cloning an existing button from the action bar.
+ * @param {Element} templateButton - An existing button element to use as a template for style.
+ * @returns {Element|null} The new button element or null if creation fails.
+ */
+function createShareButton(templateButton) {
+    const newButton = templateButton.cloneNode(true);
+    newButton.id = `${BUTTON_ID_PREFIX}${Date.now()}`; // Unique ID for each button
+    newButton.removeAttribute('aria-label'); // Remove original label if it exists
 
-    // Find the element containing the text and update it.
-    const textElement = button.querySelector('span[dir="auto"]');
-    if (textElement) {
-        console.log('NS4F DEBUG: Found text element `span[dir="auto"]` to update.');
-        textElement.textContent = BUTTON_TEXT;
-    } else {
-        console.log('NS4F DEBUG: Could not find text element `span[dir="auto"]`, setting textContent of the whole button.');
-        button.textContent = BUTTON_TEXT;
-    }
-
-    // --- Icon Replacement Logic ---
-    const iconElement = button.querySelector('i, img, svg');
+    // Find and replace the icon
+    const iconElement = newButton.querySelector('i, img, svg');
     if (iconElement) {
-        console.log('NS4F DEBUG: Found icon element to replace:', iconElement);
         const notionIcon = document.createElement('img');
-        notionIcon.src = chrome.runtime.getURL('icons/notion-icon.svg');
-
-        // Attempt to match the original icon's dimensions and styling
+        notionIcon.src = NOTION_ICON_URL;
         notionIcon.style.width = '20px';
         notionIcon.style.height = '20px';
-        notionIcon.style.marginRight = '12px'; // Adjust as needed
-        notionIcon.style.verticalAlign = 'middle';
-
         iconElement.parentNode.replaceChild(notionIcon, iconElement);
-        console.log('NS4F DEBUG: Replaced original icon with Notion icon.');
-    } else {
-        console.log('NS4F DEBUG: Could not find an icon element (i, img, svg) to replace.');
     }
-    // --- End Icon Replacement ---
 
-    const cleanButton = document.createElement('div');
-    cleanButton.innerHTML = button.innerHTML;
-    cleanButton.id = button.id;
-    cleanButton.setAttribute('role', button.getAttribute('role'));
-    cleanButton.setAttribute('class', button.getAttribute('class'));
-    cleanButton.setAttribute('style', button.getAttribute('style'));
-    cleanButton.addEventListener('click', (event) => {
+    // Find and replace the text
+    // Facebook buttons often have text in a span with no specific class.
+    // We target the deepest, most specific element that contains the button text.
+    const textElement = newButton.querySelector('span[dir="auto"]');
+    if (textElement) {
+        textElement.textContent = BUTTON_TEXT;
+    } else {
+        // Fallback for different button structures
+        const innerSpan = newButton.querySelector('span > span');
+        if(innerSpan) innerSpan.textContent = BUTTON_TEXT;
+        else newButton.textContent = BUTTON_TEXT; // Fallback if no specific text span found
+    }
+
+    // Attach the event listener for the new button
+    newButton.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
-        console.log('NS4F: "Share to Notion" button clicked!');
-
-        // --- Data Extraction and Messaging ---
-        const postDetails = getPostDetails(event.target);
+        console.log('NS4F: "Share to Notion" button clicked on post!');
+        const postDetails = getPostDetails(event.currentTarget);
         chrome.runtime.sendMessage({
             action: "ns4f_share",
             data: postDetails
@@ -72,189 +56,160 @@ function createShareButton(menuList) {
                 console.log("NS4F: Message sent successfully, response:", response);
             }
         });
-        // --- End Data Extraction and Messaging ---
     });
 
-    console.log('NS4F DEBUG: Clean button created.', cleanButton);
-
-    return cleanButton;
+    return newButton;
 }
 
-function findAndInjectButton() {
-    console.log(`NS4F DEBUG: Running findAndInjectButton. Searching for '${SHARE_DIALOG_SELECTOR}'.`);
-    const dialogs = document.querySelectorAll(SHARE_DIALOG_SELECTOR);
 
-    if (dialogs.length === 0) {
-        return;
-    }
-
-    console.log(`NS4F DEBUG: Found ${dialogs.length} dialog(s).`);
-
-    dialogs.forEach((dialog, index) => {
-        console.log(`NS4F DEBUG: Checking dialog #${index + 1}.`);
-        const headings = dialog.querySelectorAll('h2, h3, [role="heading"]');
-        if (headings.length === 0) {
-            console.log(`NS4F DEBUG: Dialog #${index + 1} has no heading elements.`);
-            return;
-        }
-
-        const hasShareHeading = Array.from(headings).some(h => {
-            console.log(`NS4F DEBUG: Dialog #${index + 1}, found heading with text: "${h.textContent}"`);
-            return h.textContent.includes('分享');
-        });
-
-        if (!hasShareHeading) {
-            console.log(`NS4F DEBUG: Dialog #${index + 1} does not seem to be a share dialog.`);
-            return;
-        }
-
-        console.log(`NS4F DEBUG: Found a potential share dialog! (Dialog #${index + 1})`);
-
-        const menuList = dialog.querySelector(SHARE_MENU_LIST_SELECTOR);
-        if (!menuList) {
-            console.log(`NS4F DEBUG: Share dialog found, but it does not contain a menu list with selector '${SHARE_MENU_LIST_SELECTOR}'.`);
-            return;
-        }
-
-        console.log('NS4F DEBUG: Found menu list inside the dialog.', menuList);
-
-        // The actual container for the items is the parent of the first list item.
-        const injectionParent = menuList.querySelector('div[role="listitem"]')?.parentElement;
-        if (!injectionParent) {
-            console.log(`NS4F DEBUG: Could not find the injection parent for the share button.`);
-            return;
-        }
-
-        if (injectionParent.querySelector(`#${BUTTON_ID}`)) {
-            console.log('NS4F DEBUG: Button already injected. Skipping.');
-            return;
-        }
-
-        console.log('NS4F: Attempting to create and inject button.');
-        // createShareButton can still use menuList to find any descendant item to clone.
-        const button = createShareButton(menuList);
-        if (button) {
-            // New logic to insert the button at the correct position.
-            const menuItems = injectionParent.querySelectorAll('div[role="listitem"]');
-            let messengerButton = null;
-            let whatsappButton = null;
-
-            for (const item of menuItems) {
-                const text = item.textContent || "";
-                if (text.includes('Messenger') || text.includes('使用 Messenger 傳送')) {
-                    messengerButton = item;
-                }
-                if (text.includes('WhatsApp') || text.includes('傳送到 WhatsApp')) {
-                    whatsappButton = item;
-                }
-            }
-
-            if (messengerButton) {
-                // Insert after the Messenger button.
-                messengerButton.parentNode.insertBefore(button, messengerButton.nextSibling);
-                console.log('NS4F: Button injected successfully after Messenger.');
-            } else if (whatsappButton) {
-                // Fallback: Insert before the WhatsApp button if Messenger isn't found.
-                injectionParent.insertBefore(button, whatsappButton);
-                console.log('NS4F: Messenger button not found. Injecting before WhatsApp.');
-            } else {
-                // Fallback: append to the end of the list if neither is found.
-                injectionParent.appendChild(button);
-                console.log('NS4F: Neither Messenger nor WhatsApp button found. Appending to end of list.');
-            }
-        } else {
-            console.log('NS4F: Failed to create button.');
-        }
-    });
-}
-
-function handleDomChanges(mutationsList, observer) {
-  // We can simply run our check function whenever the DOM changes.
-  // For better performance on very active pages, this could be debounced.
-  findAndInjectButton();
-}
-
-// Create an observer instance linked to the callback function
-const observer = new MutationObserver(handleDomChanges);
-
-// Configuration for the observer:
-// We want to watch for nodes being added or removed from the DOM.
-const config = {
-  childList: true, // Observe direct children additions/removals
-  subtree: true    // Observe all descendants, not just direct children
-};
-
-// Start observing the target node for configured mutations.
-// We watch the entire body of the document to catch modals or pop-ups
-// that get appended at the end of the body.
-observer.observe(document.body, config);
-
-console.log("MutationObserver is now watching the DOM.");
-
+/**
+ * Extracts the permalink and content from the post.
+ * @param {Element} buttonElement - The button that was clicked.
+ * @returns {{content: string, url: string}}
+ */
 function getPostDetails(buttonElement) {
-    // This is a best-effort attempt to find the post content and URL.
-    // Facebook's DOM is complex and subject to change.
-    const dialog = buttonElement.closest('div[role="dialog"]');
-    if (!dialog) {
-        console.error("NS4F: Could not find parent dialog for the share button.");
-        return { content: '無法找到貼文對話框。', url: window.location.href };
+    const postElement = buttonElement.closest(POST_SELECTOR);
+    if (!postElement) {
+        console.error("NS4F: Could not find parent post element.");
+        return { content: '無法找到貼文內容。', url: window.location.href };
     }
 
-    // --- New URL Extraction Logic (from WhatsApp link) ---
+    // --- Permalink Extraction ---
     let postUrl = '';
-    // Find the WhatsApp link by checking the href for "wa.me".
-    const whatsAppAnchor = Array.from(dialog.querySelectorAll('a')).find(a => a.href.includes('wa.me'));
+    // Strategy 1: Find the timestamp link. This is the most reliable method.
+    // Facebook uses an `<a>` tag with a specific `aria-label` or containing a `<time>` element.
+    const timestampLink = postElement.querySelector('a[aria-label*="timestamp"], a:has(time)');
 
-    if (whatsAppAnchor && whatsAppAnchor.href) {
-        try {
-            // Use URLSearchParams to safely parse the query string.
-            const urlParams = new URLSearchParams(new URL(whatsAppAnchor.href).search);
-            const textParam = urlParams.get('text');
-            if (textParam) {
-                // The 'text' parameter contains the URL we want to share.
-                postUrl = textParam;
-                console.log(`NS4F: Extracted URL from WhatsApp link: ${postUrl}`);
-            }
-        } catch (e) {
-            console.error("NS4F: Error parsing WhatsApp link:", e);
-        }
-    }
-
-    if (!postUrl) {
-        console.log("NS4F: Could not find or parse WhatsApp link, falling back to previous method.");
-        // Fallback to the old method if the new one fails.
-        const timeLink = dialog.querySelector('a[href*="/posts/"], a[href*="/videos/"], a[href*="/photos/"]');
-        if (timeLink && timeLink.href) {
-            postUrl = timeLink.href;
+    if (timestampLink && timestampLink.href) {
+        postUrl = timestampLink.href;
+        console.log(`NS4F: Extracted URL from timestamp link: ${postUrl}`);
+    } else {
+        // Fallback Strategy 2: Find any link within the post that points to a post/video/photo.
+        // This is less reliable as it might grab a link to a shared post instead of the post itself.
+        const fallbackLink = postElement.querySelector('a[href*="/posts/"], a[href*="/videos/"], a[href*="/photos/"], a[href*="/story/"]');
+        if (fallbackLink && fallbackLink.href) {
+            postUrl = fallbackLink.href;
+            console.log(`NS4F: Extracted URL using fallback link selector: ${postUrl}`);
         } else {
-            // Final fallback to the page's URL.
+            // Final fallback to the page's current URL.
             postUrl = window.location.href;
+            console.log(`NS4F: No specific post link found. Falling back to window.location.href.`);
         }
     }
-    // --- End URL Extraction Logic ---
 
-
-    // --- Content Extraction Logic (Improved) ---
+    // --- Content Extraction ---
     let content = '無法自動擷取內容。';
-    // New, preferred selector for direct post view. Searches the whole document.
-    let contentElement = document.querySelector('span[data-ad-rendering-role="description"]');
+    // Strategy 1: Look for the main content block used in many post types.
+    let contentElement = postElement.querySelector('div[data-ad-preview="message"]');
+
+    // Strategy 2: Fallback for different structures, like shared posts or videos.
+    if (!contentElement) {
+        contentElement = postElement.querySelector('span[data-ad-id]');
+    }
+
+    // Strategy 3: A more generic selector looking for a span with dir="auto"
+    // that is a direct child of a div. This is fragile but can work as a last resort.
+    if (!contentElement) {
+       const spans = postElement.querySelectorAll('div > span[dir="auto"]');
+       // Often the longest span is the content.
+       if (spans.length > 0) {
+           contentElement = Array.from(spans).reduce((a, b) => a.textContent.length > b.textContent.length ? a : b);
+       }
+    }
 
     if (contentElement) {
-        console.log("NS4F: Extracted content using 'description' role from document.");
         content = contentElement.innerText;
+        console.log("NS4F: Extracted content successfully.", contentElement);
     } else {
-        // Fallback to the selector within the share dialog if the primary one fails
-        console.log("NS4F: Could not find content with 'description' role, falling back to 'message' preview within dialog.");
-        contentElement = dialog.querySelector('div[data-ad-preview="message"]');
-        if (contentElement) {
-            console.log("NS4F: Extracted content using 'message' preview fallback.");
-            content = contentElement.innerText;
-        }
+        console.log("NS4F: Could not extract content using any strategy.");
     }
-    // --- End Content Extraction Logic ---
+
 
     return {
         content: content.trim(),
         url: postUrl
     };
 }
+
+/**
+ * Injects the share button into a specific Facebook post element.
+ * @param {Element} postElement - The DOM element of the Facebook post.
+ */
+function injectButtonIntoPost(postElement) {
+    if (postElement.hasAttribute(PROCESSED_MARKER)) {
+        return; // Button already injected or processing attempted.
+    }
+    postElement.setAttribute(PROCESSED_MARKER, 'true'); // Mark as processed
+
+    // The action bar is typically a div with role="toolbar"
+    const actionBar = postElement.querySelector('div[role="toolbar"]');
+    if (!actionBar) {
+        console.log("NS4F: Could not find action bar in post.", postElement);
+        return;
+    }
+
+    // Find a button to use as a template for styling.
+    // We look for any div with role="button" inside the action bar.
+    const templateButton = actionBar.querySelector('div[role="button"]');
+    if (!templateButton) {
+        console.log("NS4F: Could not find a template button to clone in action bar.", actionBar);
+        return;
+    }
+
+    const newButton = createShareButton(templateButton);
+    if (newButton) {
+        // Append the new button to the action bar.
+        actionBar.appendChild(newButton);
+        console.log("NS4F: Successfully injected button into post.", postElement);
+    }
+}
+
+/**
+ * Scans the document for any posts that haven't been processed yet.
+ */
+function scanForPosts() {
+    document.querySelectorAll(`${POST_SELECTOR}:not([${PROCESSED_MARKER}])`).forEach(injectButtonIntoPost);
+}
+
+/**
+ * The callback function for the MutationObserver.
+ * It checks for added nodes and injects the button into any new posts.
+ * @param {MutationRecord[]} mutationsList
+ */
+function handleMutations(mutationsList) {
+    for (const mutation of mutationsList) {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    // Check if the added node itself is a post
+                    if (node.matches(POST_SELECTOR)) {
+                        injectButtonIntoPost(node);
+                    }
+                    // Check if the added node contains any posts
+                    node.querySelectorAll(POST_SELECTOR).forEach(injectButtonIntoPost);
+                }
+            });
+        }
+    }
+}
+
+/**
+ * Initializes the observer and performs the initial scan.
+ */
+function initialize() {
+    console.log("NS4F: Initializing direct post injection observer.");
+
+    // Create and configure the observer
+    const observer = new MutationObserver(handleMutations);
+    const config = {
+        childList: true,
+        subtree: true
+    };
+    observer.observe(document.body, config);
+
+    // Run an initial scan for posts that might have loaded before the script ran
+    setTimeout(scanForPosts, 1000); // Delay to allow initial page load
+    console.log("NS4F: Observer is now watching for posts.");
+}
+
+initialize();
