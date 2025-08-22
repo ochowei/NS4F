@@ -1,83 +1,55 @@
-# AGENTS.md - Notion Share for Facebook (NS4F)
+# Agents.md
 
-### PDCA 操作
-主要資料夾: .pdca-cycle
-版本: 1.0.0
-操作指引
+本文件定義專案中 **Agent 的行為規範**，包含 PDCA cycle 的操作方式、文件規則。
 
-    P: 寫 plan.md 與 journal-cycle
-    D: 在 dev-log 裡面寫日誌 與 journal-cycle
-    C: 也是在 dev-log 裡面寫日誌 與 journal-cycle
-    A: 寫 journal-cycle
+---
 
-起步
+# PDCA 系統
 
-    如果是從 0 開始的 project，從 P -> D -> C -> ... -> D -> C -> A
-    如果要更動 plan 的話，要進行 A，再更動
-    如果是已經有內容的 project，從 C 開始，然後 A，會決定繼續 D 還是 P，然後進行 Cycle。
+## 1. PDCA 循環操作
 
+### Plan（計劃）
 
-## 專案目標
+* 若 `.pdca-cycle/plan.md` 尚未存在，需參考既有程式碼（如果有的話），並可詢問使用者，以撰寫初始的 `plan.md`
+* 當 `plan.md` 存在時，參考其中的長遠目標 (goals)、中目標 (roadmap)、短目標 (todo list)
+* 制定本循環任務與目標
+* 在 `.pdca-cycle/cycle_journal.md` 新增 **Plan 區塊**
 
-此專案的目標是建立一個跨瀏覽器的擴充功能，讓使用者能將 Facebook 上的貼文一鍵分享至指定的 Notion Database。
+### Do（執行）
 
-## 技術棧
+* 根據計劃執行任務
+* 將進度與結果寫入 `cycle_journal.md` 的 **Do 區塊**
 
-- **核心**: JavaScript (ES6+), WebExtensions API (Manifest V3)
-- **建置工具**: 尚未決定，但可能會使用 `webpack` 或類似的 bundler 來處理模組化與跨瀏覽器打包。
-- **測試**: 尚未決定，但應包含單元測試與 E2E 測試。
+### Check（檢查）
 
-## 專案結構
+* 比對執行結果與計劃
+* 評估目標完成度，紀錄檢討
+* 更新 `cycle_journal.md` 的 **Check 區塊**
 
-```
-ns4f/
-├── AGENTS.md         # 開發指南 (就是本檔案)
-├── README.md         # 專案說明
-├── package.json      # 專案依賴與腳本
-├── .gitignore        # Git 忽略清單
-├── manifest.json     # 擴充功能核心設定檔
-├── dist/             # 打包後的擴充功能 (各瀏覽器一個子目錄)
-│   ├── chrome/
-│   └── firefox/
-├── src/              # 原始碼
-│   ├── icons/        # 擴充功能圖示 (16x16, 48x48, 128x128)
-│   ├── background/   # 背景腳本 (Service Worker for MV3)
-│   │   └── service-worker.js
-│   ├── content/      # 內容腳本 (注入 Facebook 頁面)
-│   │   └── content-script.js
-│   ├── options/      # 設定頁面
-│   │   ├── options.html
-│   │   └── options.js
-│   └── lib/          # 共用函式庫
-│       └── notion-api.js # Notion API 封裝
-└── e2e/              # 前端驗證
-    └── basic.spec.ts
-```
+### Act（改善）
 
-## 開發流程
+* 根據檢討提出改善方案
+* 必要時更新 `plan.md`
+* 在 `cycle_journal.md` 新增 **Act 區塊**，並開啟下一輪
 
-1.  **安裝依賴**:
-    ```bash
-    npm install
-    ```
-2.  **建置**:
-    ```bash
-    npm run build:chrome
-    npm run build:firefox
-    ```
-    (注意: `build` 腳本尚待在 `package.json` 中定義)
+---
+
+## 2. 文件規則
+
+* `.pdca-cycle/plan.md` 應包含三個部分：
+
+  * **Goals (長遠目標)**：每個目標為一個 **goal**
+  * **Roadmap (中目標)**：每個目標為一個 **milestone**
+  * **Todo List (短目標)**：每個目標為一個 **task**
+* 所有紀錄保持 **簡短條列式**，每點不超過 3 行
+* 所有文件使用 UTF-8 編碼與 Markdown 格式
+* 新增的檔案需放在 `.pdca-cycle/`  資料夾
+
+---
 
 
-## 注意事項
 
-- **Manifest V3**: 主要目標為 Manifest V3，以符合 Chrome 的最新要求。Firefox 的支援需要確認 `host_permissions` 等設定的相容性。
-- **DOM 操作**: Facebook 的 DOM 結構經常變動。`content-script.js` 應使用穩固、有彈性的方式來尋找目標節點 (例如 `MutationObserver`)，避免因 class name 或 id 變更而失效。
-- **Notion API**:
-  - `Internal Integration Token` 模式較簡單，但 token 管理需注意安全性，不要硬編碼在程式碼中，應由使用者在設定頁面輸入，並儲存在 `chrome.storage.local`。
-  - `OAuth` 模式是更安全的發布方式，但流程較複雜，可作為第二階段目標。
-- **跨瀏覽器相容性**:
-  - 盡量使用 `chrome.*` API，因為 `webextension-polyfill` 可以將其轉換為 `browser.*`。
-  - 主要差異點可能在於 `service-worker` (Chrome) vs. `background script` (Firefox MV2/MV3)，以及儲存權限 (`chrome.storage` vs. `browser.storage`)。我們將優先使用 `chrome.storage` 搭配 polyfill。
+
 
 
 
