@@ -67,9 +67,6 @@ ns4f/
     ```
     (注意: `build` 腳本尚待在 `package.json` 中定義)
 
-3.  **載入擴充功能進行測試**:
-    - **Chrome**: 前往 `chrome://extensions/`，啟用「開發人員模式」，點選「載入未封裝的擴充功能」，然後選擇 `dist/chrome` 目錄。
-    - **Firefox**: 前往 `about:debugging#/runtime/this-firefox`，點選「載入暫時附加元件」，然後選擇 `dist/firefox/manifest.json` 檔案。
 
 ## 注意事項
 
@@ -81,9 +78,6 @@ ns4f/
 - **跨瀏覽器相容性**:
   - 盡量使用 `chrome.*` API，因為 `webextension-polyfill` 可以將其轉換為 `browser.*`。
   - 主要差異點可能在於 `service-worker` (Chrome) vs. `background script` (Firefox MV2/MV3)，以及儲存權限 (`chrome.storage` vs. `browser.storage`)。我們將優先使用 `chrome.storage` 搭配 polyfill。
-- **前端驗證**:
-  - 你必須在 `e2e/` 目錄下撰寫 Playwright 腳本來驗證你的變更。
-  - 你必須在提交前呼叫 `frontend_verification_instructions` 來執行驗證。
-  - **注意**: 請勿編寫需要使用者登入才能運作的 E2E 測試，因為我們的測試環境無法處理登入流程。
+
 
 
