@@ -234,12 +234,22 @@ function getPostDetails(buttonElement) {
     // --- End URL Extraction Logic ---
 
 
-    // --- Content Extraction Logic (remains best-effort) ---
-    // NOTE: This selector might be fragile due to Facebook's changing class names.
+    // --- Content Extraction Logic (Improved) ---
     let content = '無法自動擷取內容。';
-    const contentElement = dialog.querySelector('div[data-ad-preview="message"]');
+    // New, preferred selector for direct post view. Searches the whole document.
+    let contentElement = document.querySelector('span[data-ad-rendering-role="description"]');
+
     if (contentElement) {
+        console.log("NS4F: Extracted content using 'description' role from document.");
         content = contentElement.innerText;
+    } else {
+        // Fallback to the selector within the share dialog if the primary one fails
+        console.log("NS4F: Could not find content with 'description' role, falling back to 'message' preview within dialog.");
+        contentElement = dialog.querySelector('div[data-ad-preview="message"]');
+        if (contentElement) {
+            console.log("NS4F: Extracted content using 'message' preview fallback.");
+            content = contentElement.innerText;
+        }
     }
     // --- End Content Extraction Logic ---
 

@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const postContent = decodeURIComponent(getQueryParam('content') || '沒有提供內容。');
     const postUrl = decodeURIComponent(getQueryParam('url') || '');
 
-    contentElement.textContent = postContent;
+    contentElement.value = postContent;
 
     if (postUrl) {
         urlElement.href = postUrl;
