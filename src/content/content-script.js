@@ -168,10 +168,53 @@ function findAndInjectButton() {
     });
 }
 
+function findAndHijackCopyLinkButton() {
+    const dialogs = document.querySelectorAll(SHARE_DIALOG_SELECTOR);
+
+    dialogs.forEach(dialog => {
+        const listItems = dialog.querySelectorAll('div[role="listitem"]');
+        listItems.forEach(item => {
+            const text = item.textContent || "";
+            // Assuming the button text is "複製連結"
+            if (text.includes('複製連結')) {
+                // Check if we've already hijacked this button
+                if (item.dataset.ns4fHijacked) {
+                    return;
+                }
+                item.dataset.ns4fHijacked = 'true';
+
+                console.log('NS4F: Found "Copy link" button. Hijacking now.');
+
+                // The actual clickable element might be the item itself or a child.
+                // Let's add the listener to the list item for broader compatibility.
+                item.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    console.log('NS4F: Hijacked "Copy link" button clicked!');
+
+                    // --- Data Extraction and Messaging ---
+                    const postDetails = getPostDetails(event.target);
+                    chrome.runtime.sendMessage({
+                        action: "ns4f_share",
+                        data: postDetails
+                    }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            console.error("NS4F: Message sending failed:", chrome.runtime.lastError);
+                        } else {
+                            console.log("NS4F: Message sent successfully, response:", response);
+                        }
+                    });
+                    // --- End Data Extraction and Messaging ---
+                }, true); // Use capture phase to ensure our listener runs first.
+            }
+        });
+    });
+}
+
 function handleDomChanges(mutationsList, observer) {
   // We can simply run our check function whenever the DOM changes.
   // For better performance on very active pages, this could be debounced.
   findAndInjectButton();
+  findAndHijackCopyLinkButton();
 }
 
 // Create an observer instance linked to the callback function
