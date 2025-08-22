@@ -10,7 +10,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         const encodedContent = encodeURIComponent(content);
         const encodedUrl = encodeURIComponent(url);
 
-        const popupUrl = chrome.runtime.getURL('src/popup/popup.html');
+        const popupUrl = chrome.runtime.getURL('popup/popup.html');
+        console.log("NS4F: Attempting to create popup with URL:", popupUrl);
 
         // Create a new window for our popup
         chrome.windows.create({
@@ -19,7 +20,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             width: 400,
             height: 300
         }, (window) => {
-            console.log("NS4F: Popup window created.", window);
+            if (chrome.runtime.lastError) {
+                console.error("NS4F: Error creating popup window:", chrome.runtime.lastError.message);
+            } else {
+                console.log("NS4F: Popup window created successfully.", window);
+            }
         });
 
         // Respond to the content script
