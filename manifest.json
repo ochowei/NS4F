@@ -8,7 +8,8 @@
     "activeTab",
     "scripting",
     "windows",
-    "tabs"
+    "tabs",
+    "clipboardRead"
   ],
   "host_permissions": [
     "*://*.facebook.com/*"
