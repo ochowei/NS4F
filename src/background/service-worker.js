@@ -2,6 +2,8 @@ console.log("NS4F: Service Worker script executing.");
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "ns4f_share") {
+        
+        chrome.tabs.create({ url: "" });
         console.log("NS4F: Received share action with data:", request.data);
 
         const { content, url } = request.data;
