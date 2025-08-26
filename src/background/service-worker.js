@@ -30,6 +30,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         // Respond to the content script
         sendResponse({ status: "success", message: "Popup opened" });
         return true; // Indicates that the response is sent asynchronously
+    } else if (request.action === "ns4f_open_tab_on_copy") {
+        console.log(`NS4F: Received open tab request for URL: ${request.url}`);
+        chrome.tabs.create({ url: request.url });
+        sendResponse({ status: "success", message: "Tab opened" });
+        return true;
     }
 });
 

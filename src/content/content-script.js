@@ -19,6 +19,9 @@ window.addEventListener('message', (ev) => {
   if (url) {
     console.log("NS4F: Intercepted a copied URL:", url);
     lastCopiedUrl = { url, t: Date.now() };
+
+    // --- Feature: Open copied link in new tab ---
+    chrome.runtime.sendMessage({ action: 'ns4f_open_tab_on_copy', url: url });
   }
 });
 
