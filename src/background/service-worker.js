@@ -1,15 +1,30 @@
 console.log("NS4F: Service Worker script executing.");
+async function getClipboardText() {
+    try {
+        const text = await navigator.clipboard.readText();
+        console.log("NS4F: 剪貼簿內容-", text);
+        return text;
+    } catch (err) {
+        console.error("NS4F: 無法讀取剪貼簿內容:", err);
+    }
+}
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "ns4f_share") {
-
-        try {
-            chrome.tabs.create({ url: 'about:blank' });
-        } catch(e) {
-            console.debug(e);
-        }
+        setTimeout(() => {
+            console.log("NS4F: 5 秒後我被執行了！");
+            try {
+                getClipboardText().then(text => {
+                    chrome.tabs.create({ url: text, index: 1 });            
+                });                
+            } catch(e) {
+                console.debug(e);            
+            }   
+          }, 500);
+        
+        
         console.log("NS4F: Received share action with data:", request.data);
-
+        /*
         const { content, url } = request.data;
 
         // Encode the parameters to safely pass them in the URL
@@ -32,6 +47,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 console.log("NS4F: Popup window created successfully.", window);
             }
         });
+        */
 
         // Respond to the content script
         sendResponse({ status: "success", message: "Popup opened" });
