@@ -212,7 +212,7 @@ function findAndHijackCopyLinkButton() {
 function handleDomChanges(mutationsList, observer) {
   // We can simply run our check function whenever the DOM changes.
   // For better performance on very active pages, this could be debounced.
-  findAndInjectButton();
+  // findAndInjectButton();
   findAndHijackCopyLinkButton();
 }
 
