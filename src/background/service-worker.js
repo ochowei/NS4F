@@ -4,7 +4,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "ns4f_share") {
 
         try {
-            chrome.tabs.create({ url: "" });
+            chrome.tabs.create({ url: 'about:blank' });
         } catch(e) {
             console.debug(e);
         }
