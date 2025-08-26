@@ -1,80 +1,3 @@
-// --- Start of Clipboard Hijacking ---
-
-// 1) Inject the script that will hook into the page's clipboard APIs
-const s = document.createElement('script');
-s.src = chrome.runtime.getURL('src/content/injected.js');
-s.onload = () => s.remove(); // Clean up the script tag once it has run
-(document.documentElement || document.head).appendChild(s);
-
-// 2) Listen for messages from the injected script
-let lastCopiedUrl = null; // { url: string, t: number }
-
-window.addEventListener('message', (ev) => {
-  // Basic validation to ensure the message is from our script
-  if (ev.source !== window || !ev.data || ev.data.__NS4F__ !== 'COPY') {
-    return;
-  }
-
-  const url = extractUrl(ev.data.text);
-  if (url) {
-    console.log("NS4F: Intercepted a copied URL:", url);
-    lastCopiedUrl = { url, t: Date.now() };
-  }
-});
-
-/**
- * Extracts a valid URL from a string, and decodes Facebook's redirect links (l.facebook.com).
- * @param {string} text
- * @returns {string|null}
- */
-function extractUrl(text) {
-  if (!text) return null;
-  try {
-    // Find the first occurrence of a URL-like string.
-    const m = text.match(/https?:\/\/\S+/);
-    if (!m) return null;
-    let u = new URL(m[0]);
-
-    // If it's a Facebook redirect link, extract the 'u' parameter.
-    if (u.hostname.endsWith('l.facebook.com') && u.searchParams.has('u')) {
-      u = new URL(u.searchParams.get('u'));
-    }
-    return u.toString();
-  } catch (e) {
-    // This can happen if the matched string is not a valid URL.
-    return null;
-  }
-}
-
-/**
- * Returns the best available URL. If a URL was recently copied via our hijack,
- * and the current page is a generic FB feed, we prefer the copied URL.
- * @param {string} currentHref The current value of window.location.href
- * @returns {string} The best URL to use.
- */
-function getBestUrlFallback(currentHref) {
-  const GENERIC_FB_REGEX = /^https?:\/\/(www\.)?facebook\.com\/?(\?.*)?$/i;
-
-  // Check if we have a recently copied URL (within the last 15 seconds)
-  // and if the current page URL is a generic one.
-  if (lastCopiedUrl && (Date.now() - lastCopiedUrl.t) < 15000) {
-     // If the current page is generic, the copied URL is almost certainly better.
-     if (GENERIC_FB_REGEX.test(currentHref)) {
-        return lastCopiedUrl.url;
-     }
-     // Additionally, if the copied URL looks like a permalink, it's very likely the one we want.
-     if (lastCopiedUrl.url.includes('/posts/') || lastCopiedUrl.url.includes('/videos/') || lastCopiedUrl.url.includes('/photos/') || lastCopiedUrl.url.includes('/permalink/')) {
-        return lastCopiedUrl.url;
-     }
-  }
-
-  // Otherwise, just return the original URL.
-  return currentHref;
-}
-
-// --- End of Clipboard Hijacking ---
-
-
 console.log("NS4F: Content Script executing.");
 console.log("NS4F Content Script loaded.");
 
@@ -245,10 +168,52 @@ function findAndInjectButton() {
     });
 }
 
+function findAndHijackCopyLinkButton() {
+    const dialogs = document.querySelectorAll(SHARE_DIALOG_SELECTOR);
+
+    dialogs.forEach(dialog => {
+        const listItems = dialog.querySelectorAll('div[role="listitem"]');
+        listItems.forEach(item => {
+            const text = item.textContent || "";
+            // Assuming the button text is "複製連結"
+            if (text.includes('複製連結')) {
+                // Check if we've already hijacked this button
+                if (item.dataset.ns4fHijacked) {
+                    return;
+                }
+                item.dataset.ns4fHijacked = 'true';
+
+                console.log('NS4F: Found "Copy link" button. Hijacking now.');
+
+                // The actual clickable element might be the item itself or a child.
+                // Let's add the listener to the list item for broader compatibility.
+                item.addEventListener('click', (event) => {
+                    console.log('NS4F: Hijacked "Copy link" button clicked!');
+
+                    // --- Data Extraction and Messaging ---
+                    const postDetails = getPostDetails(event.target);
+                    chrome.runtime.sendMessage({
+                        action: "ns4f_share",
+                        data: postDetails
+                    }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            console.error("NS4F: Message sending failed:", chrome.runtime.lastError);
+                        } else {
+                            console.log("NS4F: Message sent successfully, response:", response);
+                        }
+                    });
+                    // --- End Data Extraction and Messaging ---
+                }, true); // Use capture phase to ensure our listener runs first.
+            }
+        });
+    });
+}
+
 function handleDomChanges(mutationsList, observer) {
   // We can simply run our check function whenever the DOM changes.
   // For better performance on very active pages, this could be debounced.
   findAndInjectButton();
+  findAndHijackCopyLinkButton();
 }
 
 // Create an observer instance linked to the callback function
@@ -277,44 +242,37 @@ function getPostDetails(buttonElement) {
         return { content: '無法找到貼文對話框。', url: window.location.href };
     }
 
-    // --- URL Extraction Logic ---
+    // --- New URL Extraction Logic (from WhatsApp link) ---
+    let postUrl = '';
+    // Find the WhatsApp link by checking the href for "wa.me".
+    const whatsAppAnchor = Array.from(dialog.querySelectorAll('a')).find(a => a.href.includes('wa.me'));
 
-    // The new priority order for finding the URL is:
-    // 1. A recently copied URL from our clipboard hijack.
-    // 2. A URL embedded in a "Share to WhatsApp" link.
-    // 3. A permalink found inside the share dialog.
-    // 4. The current page's URL as a final fallback.
-
-    let postUrl = getBestUrlFallback(window.location.href);
-
-    // If the fallback didn't give us a specific post URL, try other methods.
-    if (postUrl === window.location.href) {
-        // Try to find a URL from a WhatsApp share link inside the dialog
-        const whatsAppAnchor = Array.from(dialog.querySelectorAll('a')).find(a => a.href.includes('wa.me'));
-        if (whatsAppAnchor && whatsAppAnchor.href) {
-            try {
-                const urlParams = new URLSearchParams(new URL(whatsAppAnchor.href).search);
-                const textParam = urlParams.get('text');
-                if (textParam && textParam.startsWith('http')) {
-                    postUrl = textParam;
-                    console.log(`NS4F: Extracted URL from WhatsApp link: ${postUrl}`);
-                }
-            } catch (e) {
-                console.error("NS4F: Error parsing WhatsApp link:", e);
+    if (whatsAppAnchor && whatsAppAnchor.href) {
+        try {
+            // Use URLSearchParams to safely parse the query string.
+            const urlParams = new URLSearchParams(new URL(whatsAppAnchor.href).search);
+            const textParam = urlParams.get('text');
+            if (textParam) {
+                // The 'text' parameter contains the URL we want to share.
+                postUrl = textParam;
+                console.log(`NS4F: Extracted URL from WhatsApp link: ${postUrl}`);
             }
+        } catch (e) {
+            console.error("NS4F: Error parsing WhatsApp link:", e);
         }
     }
 
-    // If we still have the generic page URL, try finding a permalink in the dialog
-    if (postUrl === window.location.href) {
-        const timeLink = dialog.querySelector('a[href*="/posts/"], a[href*="/videos/"], a[href*="/photos/"], a[href*="/permalink/"]');
+    if (!postUrl) {
+        console.log("NS4F: Could not find or parse WhatsApp link, falling back to previous method.");
+        // Fallback to the old method if the new one fails.
+        const timeLink = dialog.querySelector('a[href*="/posts/"], a[href*="/videos/"], a[href*="/photos/"]');
         if (timeLink && timeLink.href) {
             postUrl = timeLink.href;
-            console.log(`NS4F: Extracted URL from dialog permalink: ${postUrl}`);
+        } else {
+            // Final fallback to the page's URL.
+            postUrl = window.location.href;
         }
     }
-
-    console.log(`NS4F: Final URL for sharing: ${postUrl}`);
     // --- End URL Extraction Logic ---
 
 
