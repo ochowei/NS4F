@@ -1,22 +1,17 @@
 console.log("NS4F: Service Worker script executing.");
-async function getClipboardText() {
-    try {
-        const text = await navigator.clipboard.readText();
-        console.log("NS4F: 剪貼簿內容-", text);
-        return text;
-    } catch (err) {
-        console.error("NS4F: 無法讀取剪貼簿內容:", err);
-    }
-}
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "ns4f_share") {
         setTimeout(() => {
             console.log("NS4F: 5 秒後我被執行了！");
             try {
-                getClipboardText().then(text => {
-                    chrome.tabs.create({ url: text, index: 1 });            
+                navigator.clipboard.readText().then(text => {                    
+                    chrome.tabs.create({ url: text, index: 1 });  
+
+                }).catch(err => {
+                    console.debug(err);            
                 });                
+                 
             } catch(e) {
                 console.debug(e);            
             }   
