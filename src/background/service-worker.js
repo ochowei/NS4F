@@ -6,29 +6,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         const { content, url } = request.data;
 
-        // Encode the parameters to safely pass them in the URL
-        const encodedContent = encodeURIComponent(content);
-        const encodedUrl = encodeURIComponent(url);
-
-        const popupUrl = chrome.runtime.getURL('popup/popup.html');
-        console.log("NS4F: Attempting to create popup with URL:", popupUrl);
-
-        // Create a new window for our popup
-        chrome.windows.create({
-            url: `${popupUrl}?content=${encodedContent}&url=${encodedUrl}`,
-            type: 'popup',
-            width: 400,
-            height: 300
-        }, (window) => {
-            if (chrome.runtime.lastError) {
-                console.error("NS4F: Error creating popup window:", chrome.runtime.lastError.message);
-            } else {
-                console.log("NS4F: Popup window created successfully.", window);
-            }
-        });
+        // --- Feature: Open Link in New Tab ---
+        console.log(`NS4F: Opening new tab with URL: ${url}`);
+        chrome.tabs.create({ url: url });
 
         // Respond to the content script
-        sendResponse({ status: "success", message: "Popup opened" });
+        sendResponse({ status: "success", message: "Tab opened" });
         return true; // Indicates that the response is sent asynchronously
     }
 });
