@@ -9,13 +9,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     chrome.tabs.create({ url: text, index: 1 });  
 
                 }).catch(err => {
-                    console.debug(err);            
+                    console.error(err);            
                 });                
                  
             } catch(e) {
-                console.debug(e);            
+                console.error(e);            
             }   
-          }, 500);
+          }, 2000);
         
         
         console.log("NS4F: Received share action with data:", request.data);
