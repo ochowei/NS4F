@@ -19,6 +19,14 @@ window.addEventListener('message', (ev) => {
   if (url) {
     console.log("NS4F: Intercepted a copied URL:", url);
     lastCopiedUrl = { url, t: Date.now() };
+
+    // Check if the auto-open feature is enabled and send a message if so.
+    chrome.storage.sync.get({ autoOpen: false }, (items) => {
+      if (items.autoOpen) {
+        console.log("NS4F: Auto-open is enabled. Sending message to background script.");
+        chrome.runtime.sendMessage({ action: 'auto_open_tab', url: url });
+      }
+    });
   }
 });
 

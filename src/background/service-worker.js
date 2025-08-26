@@ -1,6 +1,15 @@
 console.log("NS4F: Service Worker script executing.");
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "auto_open_tab") {
+        console.log("NS4F: Received auto_open_tab action with URL:", request.url);
+        if (request.url) {
+            chrome.tabs.create({ url: request.url });
+        }
+        // No response needed for this action
+        return;
+    }
+
     if (request.action === "ns4f_share") {
         console.log("NS4F: Received share action with data:", request.data);
 

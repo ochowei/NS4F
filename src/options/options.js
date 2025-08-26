@@ -5,11 +5,13 @@ console.log("NS4F: Options script executing.");
 function save_options() {
   const notionToken = document.getElementById('notion-token').value;
   const databaseId = document.getElementById('database-id').value;
+  const autoOpen = document.getElementById('auto-open').checked;
 
   // The chrome.storage API is asynchronous.
   chrome.storage.sync.set({
     notionToken: notionToken,
-    databaseId: databaseId
+    databaseId: databaseId,
+    autoOpen: autoOpen
   }, function() {
     // Update status to let user know options were saved.
     const status = document.getElementById('status');
@@ -23,13 +25,15 @@ function save_options() {
 // Restores select box and checkbox state using the preferences
 // stored in chrome.storage.
 function restore_options() {
-  // Use default value for notionToken and databaseId
+  // Use default value for notionToken, databaseId, and autoOpen
   chrome.storage.sync.get({
     notionToken: '',
-    databaseId: ''
+    databaseId: '',
+    autoOpen: false // Default to false
   }, function(items) {
     document.getElementById('notion-token').value = items.notionToken;
     document.getElementById('database-id').value = items.databaseId;
+    document.getElementById('auto-open').checked = items.autoOpen;
   });
 }
 
