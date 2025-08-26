@@ -44,8 +44,7 @@
         "icons/*",
         "src/popup/popup.html",
         "src/popup/popup.css",
-        "src/popup/popup.js",
-        "src/content/injected.js"
+        "src/popup/popup.js"
       ],
       "matches": [
         "*://*.facebook.com/*"
