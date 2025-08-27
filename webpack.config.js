@@ -47,6 +47,11 @@ module.exports = (env) => {
               // Add any browser-specific transformations here in the future
               if (browser === 'firefox') {
                 // Example: Firefox might require different keys or values
+                manifest.background = {
+                  "scripts": [
+                    "background/service-worker.js"
+                  ]
+                };
               }
 
               return JSON.stringify(manifest, null, 2);
