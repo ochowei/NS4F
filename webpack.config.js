@@ -13,6 +13,7 @@ module.exports = (env) => {
     entry: {
       'background/service-worker': './src/background/service-worker.js',
       'content/content-script': './src/content/content-script.js',
+      'options/options': ['./node_modules/webextension-polyfill/dist/browser-polyfill.js', './src/options/options.js'],
     },
     output: {
       path: buildDir,
@@ -58,7 +59,7 @@ module.exports = (env) => {
           },
           { from: 'src/icons', to: 'icons' },
           { from: 'src/_locales', to: '_locales' },
-          { from: 'src/options', to: 'options' },
+          { from: 'src/options/options.html', to: 'options/options.html' },
         ],
       }),
     ],
