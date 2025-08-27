@@ -3,6 +3,7 @@
   "name": "New Share for Facebook",
   "version": "0.1.0",
   "description": "This browser extension streamlines the process of sharing content from Facebook. When you click the \"Copy Link\" button on a post, it automatically opens the copied link in a new browser tab, saving you the hassle of manually pasting the URL.",
+  "default_locale": "en",
   "permissions": [
     "storage",
     "activeTab",
