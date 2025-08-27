@@ -1,26 +1,13 @@
 console.log("NS4F: Service Worker script executing.");
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "ns4f_share") {
-        setTimeout(() => {
-            console.log("NS4F: 5 秒後我被執行了！");
-            try {
-                navigator.clipboard.readText().then(text => {                    
-                    chrome.tabs.create({ url: text, index: 1 });  
-
-                }).catch(err => {
-                    console.error(err);            
-                });                
-                 
-            } catch(e) {
-                console.error(e);            
-            }   
-          }, 2000);
-        
+    if (request.action === "ns4f_share") {        
         
         console.log("NS4F: Received share action with data:", request.data);
+        const { content, url, clipboard } = request.data;
+
+        chrome.tabs.create({ url: clipboard, index: 1 });  
         /*
-        const { content, url } = request.data;
 
         // Encode the parameters to safely pass them in the URL
         const encodedContent = encodeURIComponent(content);

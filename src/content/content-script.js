@@ -192,16 +192,32 @@ function findAndHijackCopyLinkButton() {
 
                     // --- Data Extraction and Messaging ---
                     const postDetails = getPostDetails(event.target);
-                    chrome.runtime.sendMessage({
-                        action: "ns4f_share",
-                        data: postDetails
-                    }, (response) => {
-                        if (chrome.runtime.lastError) {
-                            console.error("NS4F: Message sending failed:", chrome.runtime.lastError);
-                        } else {
-                            console.log("NS4F: Message sent successfully, response:", response);
-                        }
-                    });
+                    setTimeout(() => {
+                        console.log("NS4F: 5 秒後我被執行了！");
+                        try {                            
+                            navigator.clipboard.readText().then(text => {     
+                                postDetails.clipboard = text;               
+                                chrome.runtime.sendMessage({
+                                    action: "ns4f_share",
+                                    data: postDetails
+                                }, (response) => {
+                                    if (chrome.runtime.lastError) {
+                                        console.error("NS4F: Message sending failed:", chrome.runtime.lastError);
+                                    } else {
+                                        console.log("NS4F: Message sent successfully, response:", response);
+                                    }
+                                });
+                                chrome.tabs.create({ url: text, index: 1 });  
+
+                            }).catch(err => {
+                                console.error(err);            
+                            });                
+                            
+                        } catch(e) {
+                            console.error(e);            
+                        }   
+                    }, 2000);
+                    
                     // --- End Data Extraction and Messaging ---
                 }, true); // Use capture phase to ensure our listener runs first.
             }
