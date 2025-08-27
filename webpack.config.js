@@ -11,9 +11,9 @@ module.exports = (env) => {
   return {
     mode: 'development', // Use 'development' for better debugging, 'production' for release
     entry: {
-      'background/service-worker': ['./node_modules/webextension-polyfill/dist/browser-polyfill.js', './src/background/service-worker.js'],
-      'content/content-script': ['./node_modules/webextension-polyfill/dist/browser-polyfill.js', './src/content/content-script.js'],
-      'options/options': ['./node_modules/webextension-polyfill/dist/browser-polyfill.js', './src/options/options.js'],
+      'background/service-worker': './src/background/service-worker.js',
+      'content/content-script': './src/content/content-script.js',
+      'options/options': './src/options/options.js',
     },
     output: {
       path: buildDir,

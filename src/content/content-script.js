@@ -1,3 +1,5 @@
+import browser from "webextension-polyfill";
+
 console.log("NS4F: Content Script executing.");
 
 let copyLinkButtonText;

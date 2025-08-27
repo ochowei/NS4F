@@ -1,3 +1,5 @@
+import browser from "webextension-polyfill";
+
 // src/options/options.js
 
 // 將 chrome 改為 browser，並使用 Promise

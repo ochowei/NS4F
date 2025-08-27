@@ -1,3 +1,5 @@
+import browser from "webextension-polyfill";
+
 console.log("NS4F: Service Worker script executing.");
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
