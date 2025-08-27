@@ -27,13 +27,6 @@
       "css": []
     }
   ],
-  "options_ui": {
-    "page": "src/options/options.html",
-    "open_in_tab": true
-  },
-  "action": {
-    "default_title": "Notion Share for Facebook - 設定"
-  },
   "icons": {
     "16": "src/icons/icon16.png",
     "48": "src/icons/icon48.png",
