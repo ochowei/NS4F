@@ -14,11 +14,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
-// Listener for clicks on the extension's toolbar icon
-chrome.action.onClicked.addListener((tab) => {
-    // When the user clicks the icon, open the options page.
-    console.log("NS4F: Action icon clicked. Opening options page.");
-    chrome.runtime.openOptionsPage();
-});
-
 console.log("NS4F: Service Worker loaded and message listener attached.");

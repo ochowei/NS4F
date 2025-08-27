@@ -13,7 +13,6 @@ module.exports = (env) => {
     entry: {
       'background/service-worker': './src/background/service-worker.js',
       'content/content-script': './src/content/content-script.js',
-      'options/options': './src/options/options.js',
     },
     output: {
       path: buildDir,
@@ -57,7 +56,6 @@ module.exports = (env) => {
               return JSON.stringify(manifest, null, 2);
             },
           },
-          { from: 'src/options/options.html', to: 'options/options.html' },
           { from: 'src/icons', to: 'icons' },
         ],
       }),
