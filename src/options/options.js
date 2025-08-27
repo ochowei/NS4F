@@ -1,25 +1,25 @@
-// Saves options to chrome.storage
+import browser from "webextension-polyfill";
+
+// src/options/options.js
+
+// 將 chrome 改為 browser，並使用 Promise
 function save_options() {
     const language = document.getElementById('language').value;
-    chrome.storage.sync.set({
+    browser.storage.sync.set({
         language: language
-    }, function() {
-        // Update status to let user know options were saved.
+    }).then(() => {
         const status = document.getElementById('status');
         status.textContent = 'Options saved.';
-        setTimeout(function() {
+        setTimeout(() => {
             status.textContent = '';
         }, 750);
     });
 }
 
-// Restores select box and checkbox state using the preferences
-// stored in chrome.storage.
 function restore_options() {
-    // Use default value language = 'auto'
-    chrome.storage.sync.get({
+    browser.storage.sync.get({
         language: 'auto'
-    }, function(items) {
+    }).then((items) => {
         document.getElementById('language').value = items.language;
     });
 }

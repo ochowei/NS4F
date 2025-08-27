@@ -13,6 +13,7 @@ module.exports = (env) => {
     entry: {
       'background/service-worker': './src/background/service-worker.js',
       'content/content-script': './src/content/content-script.js',
+      'options/options': './src/options/options.js',
     },
     output: {
       path: buildDir,
@@ -51,6 +52,14 @@ module.exports = (env) => {
                     "background/service-worker.js"
                   ]
                 };
+
+                // 【新增此區塊】為 Firefox 新增固定的 Add-on ID
+                manifest.browser_specific_settings = {
+                  "gecko": {
+                    "id": "ns4f@ochowei.com", // 您可以自訂這個 ID，但格式需類似 email
+                    "strict_min_version": "109.0"
+                  }
+                };
               }
 
               return JSON.stringify(manifest, null, 2);
@@ -58,7 +67,7 @@ module.exports = (env) => {
           },
           { from: 'src/icons', to: 'icons' },
           { from: 'src/_locales', to: '_locales' },
-          { from: 'src/options', to: 'options' },
+          { from: 'src/options/options.html', to: 'options/options.html' },
         ],
       }),
     ],
