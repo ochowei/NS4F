@@ -216,7 +216,7 @@ function findAndHijackCopyLinkButton() {
                         } catch(e) {
                             console.error(e);            
                         }   
-                    }, 2000);
+                    }, 200);
                     
                     // --- End Data Extraction and Messaging ---
                 }, true); // Use capture phase to ensure our listener runs first.
