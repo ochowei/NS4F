@@ -24,15 +24,13 @@ function findAndHijackCopyLinkButton() {
                         try {
                             navigator.clipboard.readText().then(text => {
                                 postDetails.clipboard = text;
-                                chrome.runtime.sendMessage({
+                                browser.runtime.sendMessage({
                                     action: "ns4f_share",
                                     data: postDetails
-                                }, (response) => {
-                                    if (chrome.runtime.lastError) {
-                                        console.error("NS4F: Message sending failed:", chrome.runtime.lastError);
-                                    } else {
-                                        console.log("NS4F: Message sent successfully, response:", response);
-                                    }
+                                }).then(response => {
+                                    console.log("NS4F: Message sent successfully, response:", response);
+                                }).catch(error => {
+                                    console.error("NS4F: Message sending failed:", error);
                                 });
                             }).catch(err => {
                                 console.error(err);
@@ -104,9 +102,9 @@ function getPostDetails(buttonElement) {
 }
 
 function initialize() {
-    chrome.storage.sync.get({
+    browser.storage.sync.get({
         language: 'auto'
-    }, function(items) {
+    }).then(items => {
         console.log(`NS4F: Language setting is "${items.language}"`);
         switch (items.language) {
             case 'en':
@@ -117,7 +115,7 @@ function initialize() {
                 break;
             case 'auto':
             default:
-                copyLinkButtonText = chrome.i18n.getMessage("copy_link_button_text");
+                copyLinkButtonText = browser.i18n.getMessage("copy_link_button_text");
                 break;
         }
         console.log(`NS4F: Using "${copyLinkButtonText}" as button text.`);
