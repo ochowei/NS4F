@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Notion Share for Facebook",
+  "name": "New Share for Facebook",
   "version": "0.1.0",
-  "description": "在 Facebook 的分享選單中新增「分享至 Notion」選項，一鍵儲存貼文資訊。",
+  "description": "This browser extension streamlines the process of sharing content from Facebook. When you click the \"Copy Link\" button on a post, it automatically opens the copied link in a new browser tab, saving you the hassle of manually pasting the URL.",
   "permissions": [
     "storage",
     "activeTab",
