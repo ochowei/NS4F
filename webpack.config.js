@@ -58,6 +58,7 @@ module.exports = (env) => {
           },
           { from: 'src/icons', to: 'icons' },
           { from: 'src/_locales', to: '_locales' },
+          { from: 'src/options', to: 'options' },
         ],
       }),
     ],
