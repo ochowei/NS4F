@@ -15,7 +15,6 @@
     *   [x] **功能邏輯**：在 `src/options/options.js` 中，實作儲存與讀取設定的功能，將使用者的輸入存進瀏覽器的儲存空間 (`chrome.storage`)。
 
 *   **2. 內容腳本 (Content Script)**
-    *   [x] **注入按鈕**：在 `src/content/content-script.js` 中，實作偵測 Facebook 分享選單並注入「分享至 Notion」按鈕的邏輯。
     *   [x] **穩定性**：使用 `MutationObserver` 來應對 Facebook 動態載入的介面，確保能穩定地找到分享選單。
     *   [ ] **資料擷取**：為按鈕新增點擊事件，觸發時擷取當前頁面的標題、連結，以及使用者選取的文字。
     *   [ ] **訊息傳遞**：將擷取到的資料傳送給背景服務工作線程（Service Worker）。
@@ -32,7 +31,6 @@
 *   **5. 端對端測試 (E2E Testing)**
     *   [ ] **擴充測試案例**：在 `e2e/basic.spec.ts` 中撰寫更完整的測試，包含：
         *   [ ] 載入擴充功能並設定 Notion Token/Database ID。
-        *   [ ] 前往 Facebook 頁面，打開分享選單，驗證「分享至 Notion」按鈕是否存在。
         *   [ ] 模擬點擊按鈕，並攔截（Mock）對 Notion API 的請求，驗證傳送的資料是否正確。
 
 *   **6. 跨瀏覽器相容性**
