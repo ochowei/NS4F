@@ -1,0 +1,6 @@
+{
+  "copy_link_button_text": {
+    "message": "Copy link",
+    "description": "The text for the 'Copy Link' button on Facebook's share dialog."
+  }
+}

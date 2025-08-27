@@ -11,7 +11,7 @@ function findAndHijackCopyLinkButton() {
         listItems.forEach(item => {
             const text = item.textContent || "";
             // Assuming the button text is "複製連結"
-            if (text.includes('複製連結')) {
+            if (text.includes(chrome.i18n.getMessage("copy_link_button_text"))) {
                 // Check if we've already hijacked this button
                 if (item.dataset.ns4fHijacked) {
                     return;
