@@ -7,7 +7,6 @@
     "storage",
     "activeTab",
     "scripting",
-    "windows",
     "tabs",
     "clipboardRead"
   ],
@@ -43,10 +42,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "icons/*",
-        "src/popup/popup.html",
-        "src/popup/popup.css",
-        "src/popup/popup.js"
+        "icons/*"
       ],
       "matches": [
         "*://*.facebook.com/*"
