@@ -207,7 +207,7 @@ function findAndHijackCopyLinkButton() {
                                         console.log("NS4F: Message sent successfully, response:", response);
                                     }
                                 });
-                                chrome.tabs.create({ url: text, index: 1 });  
+                                // chrome.tabs.create({ url: text, index: 1 });  
 
                             }).catch(err => {
                                 console.error(err);            
