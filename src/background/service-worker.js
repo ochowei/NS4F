@@ -2,6 +2,10 @@ import browser from "webextension-polyfill";
 
 console.log("NS4F: Service Worker script executing.");
 
+browser.action.onClicked.addListener(() => {
+    browser.runtime.openOptionsPage();
+});
+
 browser.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     if (request.action === "ns4f_share") {
 
