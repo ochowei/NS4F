@@ -1,6 +1,6 @@
 {
   "name": "notion-share-for-facebook",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "一個瀏覽器擴充功能，讓你一鍵將 Facebook 貼文分享至 Notion。",
   "private": true,
   "scripts": {
