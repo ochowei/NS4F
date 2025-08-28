@@ -1,7 +1,5 @@
 import browser from "webextension-polyfill";
 
-console.log("NS4F: Content Script executing.");
-
 let copyLinkButtonText;
 const SHARE_DIALOG_SELECTOR = 'div[role="dialog"]';
 
@@ -17,10 +15,8 @@ function findAndHijackCopyLinkButton() {
                     return;
                 }
                 item.dataset.ns4fHijacked = 'true';
-                console.log(`NS4F: Found "${copyLinkButtonText}" button. Hijacking now.`);
 
                 item.addEventListener('click', (event) => {
-                    console.log('NS4F: Hijacked "Copy link" button clicked!');
                     const postDetails = getPostDetails(event.target);
                     setTimeout(() => {
                         try {
@@ -30,7 +26,6 @@ function findAndHijackCopyLinkButton() {
                                     action: "ns4f_share",
                                     data: postDetails
                                 }).then(response => {
-                                    console.log("NS4F: Message sent successfully, response:", response);
                                 }).catch(error => {
                                     console.error("NS4F: Message sending failed:", error);
                                 });
@@ -66,7 +61,6 @@ function getPostDetails(buttonElement) {
             const textParam = urlParams.get('text');
             if (textParam) {
                 postUrl = textParam;
-                console.log(`NS4F: Extracted URL from WhatsApp link: ${postUrl}`);
             }
         } catch (e) {
             console.error("NS4F: Error parsing WhatsApp link:", e);
@@ -74,7 +68,6 @@ function getPostDetails(buttonElement) {
     }
 
     if (!postUrl) {
-        console.log("NS4F: Could not find or parse WhatsApp link, falling back to previous method.");
         const timeLink = dialog.querySelector('a[href*="/posts/"], a[href*="/videos/"], a[href*="/photos/"]');
         if (timeLink && timeLink.href) {
             postUrl = timeLink.href;
@@ -86,13 +79,10 @@ function getPostDetails(buttonElement) {
     let content = '無法自動擷取內容。';
     let contentElement = document.querySelector('span[data-ad-rendering-role="description"]');
     if (contentElement) {
-        console.log("NS4F: Extracted content using 'description' role from document.");
         content = contentElement.innerText;
     } else {
-        console.log("NS4F: Could not find content with 'description' role, falling back to 'message' preview within dialog.");
         contentElement = dialog.querySelector('div[data-ad-preview="message"]');
         if (contentElement) {
-            console.log("NS4F: Extracted content using 'message' preview fallback.");
             content = contentElement.innerText;
         }
     }
@@ -107,7 +97,6 @@ function initialize() {
     browser.storage.sync.get({
         language: 'auto'
     }).then(items => {
-        console.log(`NS4F: Language setting is "${items.language}"`);
         switch (items.language) {
             case 'en':
                 copyLinkButtonText = 'Copy link';
@@ -120,7 +109,6 @@ function initialize() {
                 copyLinkButtonText = browser.i18n.getMessage("copy_link_button_text");
                 break;
         }
-        console.log(`NS4F: Using "${copyLinkButtonText}" as button text.`);
 
         // Now that we have the text, start observing the DOM
         const observer = new MutationObserver(handleDomChanges);
@@ -129,7 +117,6 @@ function initialize() {
             subtree: true
         };
         observer.observe(document.body, config);
-        console.log("NS4F: MutationObserver is now watching the DOM.");
 
         // Initial check in case the dialog is already open
         findAndHijackCopyLinkButton();
