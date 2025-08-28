@@ -2,13 +2,14 @@ import browser from "webextension-polyfill";
 
 console.log("NS4F: Service Worker script executing.");
 
-browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     if (request.action === "ns4f_share") {
 
         console.log("NS4F: Received share action with data:", request.data);
         const { content, url, clipboard } = request.data;
 
-        browser.tabs.create({ url: clipboard, index: 1 });
+        const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true });
+        browser.tabs.create({ url: clipboard, index: currentTab.index });
 
         // Respond to the content script
         sendResponse({ status: "success", message: "New tab opened" });
